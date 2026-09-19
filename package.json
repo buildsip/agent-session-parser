@@ -1,5 +1,5 @@
 {
-  "name": "agent-session-parser",
+  "name": "@buildsip/agent-session-parser",
   "version": "0.1.0",
   "description": "Parse AI agent conversation sessions stored on the user's machine.",
   "license": "UNLICENSED",

@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   publish:
-    name: Publish agent-session-parser
+    name: Publish @buildsip/agent-session-parser
     runs-on: ubuntu-latest
 
     steps:

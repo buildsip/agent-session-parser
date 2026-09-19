@@ -1,6 +1,6 @@
 # REVIEW.md
 
-Review checklist for `agent-session-parser`.
+Review checklist for `@buildsip/agent-session-parser`.
 
 ## Critical Areas
 
