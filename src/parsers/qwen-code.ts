@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   UnifiedSession,
 } from "../types/index.js";
@@ -90,7 +90,7 @@ function parseTimestamp(ts: string | undefined, fallback: Date): Date {
 }
 
 function parseQwenChatRecord(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   parsed: unknown,
   filePath: string,
   lineIndex: number,
@@ -193,7 +193,7 @@ function splitJsonObjects(text: string): string[] {
 }
 
 async function scanQwenJsonlFile(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
   visitor: (parsed: unknown, lineIndex: number) => "continue" | "stop",
 ): Promise<void> {
@@ -232,7 +232,7 @@ async function scanQwenJsonlFile(
 }
 
 async function readJsonlRecords(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<QwenChatRecord[]> {
   const records: QwenChatRecord[] = [];
@@ -262,7 +262,7 @@ function extractContentText(content: QwenContent | undefined): string {
 
 // ── Session file discovery ──────────────────────────────────────────────────
 
-async function findSessionFiles(ctx: AgentChatParserContext): Promise<string[]> {
+async function findSessionFiles(ctx: AgentSessionParserContext): Promise<string[]> {
   const results: string[] = [];
   const qwenProjectsDir = getQwenProjectsDir();
 
@@ -290,7 +290,7 @@ async function findSessionFiles(ctx: AgentChatParserContext): Promise<string[]> 
 // ── Session metadata extraction ─────────────────────────────────────────────
 
 async function extractSessionMeta(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<QwenSessionMeta | null> {
   let fileStat: fs.Stats;
@@ -454,7 +454,7 @@ function reconstructMainPath(records: QwenChatRecord[]): QwenChatRecord[] {
 }
 
 export async function parseQwenCodeSessions(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
 ): Promise<UnifiedSession[]> {
   const files = await findSessionFiles(ctx);
   const sessions: UnifiedSession[] = [];
@@ -486,7 +486,7 @@ export async function parseQwenCodeSessions(
 }
 
 export async function extractQwenCodeContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const records = await readJsonlRecords(ctx, session.originalPath);

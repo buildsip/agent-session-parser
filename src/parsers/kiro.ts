@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import { promises as fsp } from "node:fs";
 import * as path from "node:path";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   SessionParseOptions,
   UnifiedSession,
@@ -97,7 +97,7 @@ function isRecord(value: unknown): value is JsonRecord {
 }
 
 async function readJsonFile(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<unknown | undefined> {
   try {
@@ -160,7 +160,7 @@ function getDate(record: JsonRecord | undefined, keys: readonly string[]): Date 
 }
 
 function decodeWorkspaceFolderName(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   folderName: string,
 ): string | undefined {
   const normalized = folderName.replace(/-/g, "+").replace(/_/g, "/");
@@ -196,14 +196,14 @@ function parseSessionIndex(data: unknown): JsonRecord[] {
 }
 
 async function readSessionIndex(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   indexPath: string,
 ): Promise<JsonRecord[]> {
   if (!fs.existsSync(indexPath)) return [];
   return parseSessionIndex(await readJsonFile(ctx, indexPath));
 }
 
-async function discoverSessionRefs(ctx: AgentChatParserContext): Promise<KiroSessionRef[]> {
+async function discoverSessionRefs(ctx: AgentSessionParserContext): Promise<KiroSessionRef[]> {
   const refs: KiroSessionRef[] = [];
 
   for (const baseDir of getKiroWorkspaceSessionDirs()) {
@@ -346,7 +346,7 @@ function extractMessages(sessionData: JsonRecord | undefined): MessageDraft[] {
 }
 
 async function readAcpEvents(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   eventPath: string | undefined,
 ): Promise<unknown[]> {
   if (!eventPath || !fs.existsSync(eventPath)) return [];
@@ -683,7 +683,7 @@ function getModel(ref: KiroSessionRef, sessionData: JsonRecord | undefined): str
 }
 
 async function statSessionRef(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   ref: KiroSessionRef,
 ): Promise<KiroStatInfo | undefined> {
   try {
@@ -720,7 +720,7 @@ async function statSessionRef(
 }
 
 async function parseAcpSessionRef(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   ref: KiroSessionRef,
   options: SessionParseOptions,
 ): Promise<UnifiedSession | null> {
@@ -767,7 +767,7 @@ async function parseAcpSessionRef(
 }
 
 async function parseSessionRef(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   ref: KiroSessionRef,
   options: SessionParseOptions,
 ): Promise<UnifiedSession | null> {
@@ -814,7 +814,7 @@ async function parseSessionRef(
  * Parse all Kiro sessions into the unified format.
  */
 export async function parseKiroSessions(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   options: SessionParseOptions = {},
 ): Promise<UnifiedSession[]> {
   const refs = await discoverSessionRefs(ctx);
@@ -843,7 +843,7 @@ export async function parseKiroSessions(
 }
 
 async function readSiblingIndexEntry(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<JsonRecord | undefined> {
   const indexPath =
@@ -891,7 +891,7 @@ function resolveAcpContextPaths(session: UnifiedSession): {
  * Extract visible messages from a Kiro session.
  */
 export async function extractKiroContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   if (isKiroAcpSessionPath(session.originalPath)) {

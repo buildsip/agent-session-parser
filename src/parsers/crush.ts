@@ -2,7 +2,7 @@ import * as fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   SessionParseOptions,
   UnifiedSession,
@@ -79,7 +79,7 @@ interface ParsedCrushMessage {
 }
 
 function getDatabaseSyncConstructor(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
 ): DatabaseSyncConstructor | undefined {
   try {
     const sqlite = require("node:sqlite") as { DatabaseSync: DatabaseSyncConstructor };
@@ -90,7 +90,7 @@ function getDatabaseSyncConstructor(
   }
 }
 
-async function pathExists(ctx: AgentChatParserContext, filePath: string): Promise<boolean> {
+async function pathExists(ctx: AgentSessionParserContext, filePath: string): Promise<boolean> {
   try {
     await fs.access(filePath);
     return true;
@@ -104,7 +104,7 @@ async function pathExists(ctx: AgentChatParserContext, filePath: string): Promis
 }
 
 async function openReadOnlyDatabase(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   dbPath: string,
 ): Promise<SqliteDatabase | undefined> {
   if (!(await pathExists(ctx, dbPath))) return undefined;
@@ -120,7 +120,7 @@ async function openReadOnlyDatabase(
   }
 }
 
-function closeDatabase(ctx: AgentChatParserContext, db: SqliteDatabase, dbPath: string): void {
+function closeDatabase(ctx: AgentSessionParserContext, db: SqliteDatabase, dbPath: string): void {
   try {
     db.close();
   } catch (err) {
@@ -158,7 +158,7 @@ function addCandidate(
 }
 
 async function addCwdCandidates(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   candidates: CrushDbCandidate[],
   seen: Set<string>,
   cwd: string | undefined,
@@ -190,7 +190,7 @@ function crushGlobalDataPath(): string {
 }
 
 async function addProjectIndexCandidates(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   candidates: CrushDbCandidate[],
   seen: Set<string>,
 ): Promise<void> {
@@ -217,7 +217,7 @@ async function addProjectIndexCandidates(
 }
 
 async function getCrushDbCandidates(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   options?: SessionParseOptions,
 ): Promise<CrushDbCandidate[]> {
   const candidates: CrushDbCandidate[] = [];
@@ -284,7 +284,7 @@ function booleanValue(record: Record<string, unknown>, key: string): boolean | u
 }
 
 function safeAll(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   db: SqliteDatabase,
   sql: string,
   params: unknown[],
@@ -299,7 +299,7 @@ function safeAll(
 }
 
 function safeGet(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   db: SqliteDatabase,
   sql: string,
   params: unknown[],
@@ -314,7 +314,7 @@ function safeGet(
 }
 
 function columnNames(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   db: SqliteDatabase,
   tableName: "sessions" | "messages",
 ): Set<string> {
@@ -330,7 +330,7 @@ function columnNames(
   return names;
 }
 
-function getSchema(ctx: AgentChatParserContext, db: SqliteDatabase): CrushSchema | undefined {
+function getSchema(ctx: AgentSessionParserContext, db: SqliteDatabase): CrushSchema | undefined {
   const sessionColumns = columnNames(ctx, db, "sessions");
   const messageColumns = columnNames(ctx, db, "messages");
 
@@ -422,7 +422,7 @@ function parseMessageRow(row: unknown): CrushMessageRow | undefined {
   };
 }
 
-function parseParts(ctx: AgentChatParserContext, partsJson: string): ParsedCrushParts {
+function parseParts(ctx: AgentSessionParserContext, partsJson: string): ParsedCrushParts {
   let parsed: unknown;
   try {
     parsed = JSON.parse(partsJson);
@@ -506,7 +506,7 @@ function buildLatestAssistantSubquery(schema: CrushSchema, column: "model" | "pr
 }
 
 function listSessionsFromDb(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   db: SqliteDatabase,
   candidate: CrushDbCandidate,
   options?: SessionParseOptions,
@@ -594,7 +594,7 @@ function sessionDbCandidate(session: UnifiedSession): CrushDbCandidate | undefin
 }
 
 async function findDbForSession(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<CrushDbCandidate | undefined> {
   const direct = sessionDbCandidate(session);
@@ -628,7 +628,7 @@ async function findDbForSession(
 }
 
 function listMessageRows(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   db: SqliteDatabase,
   schema: CrushSchema,
   sessionId: string,
@@ -667,7 +667,7 @@ function listMessageRows(
 }
 
 function buildParsedMessages(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   rows: CrushMessageRow[],
 ): ParsedCrushMessage[] {
   const messages: ParsedCrushMessage[] = [];
@@ -728,7 +728,7 @@ function emptyConversation(session: UnifiedSession): ParsedAgentConversation {
  * Parse all Crush sessions from read-only SQLite databases.
  */
 export async function parseCrushSessions(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   options?: SessionParseOptions,
 ): Promise<UnifiedSession[]> {
   const candidates = await getCrushDbCandidates(ctx, options);
@@ -753,7 +753,7 @@ export async function parseCrushSessions(
  * Extract visible messages from a Crush session.
  */
 export async function extractCrushContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const candidate = await findDbForSession(ctx, session);

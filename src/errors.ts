@@ -6,18 +6,18 @@
 import { TOOL_NAMES } from "./types/tool-names.js";
 
 /**
- * Base error for all agent chat parser errors.
+ * Base error for all agent session parser errors.
  * Includes an optional `cause` for error chaining.
  */
-export class AgentChatParserError extends Error {
-  override readonly name: string = "AgentChatParserError";
+export class AgentSessionParserError extends Error {
+  override readonly name: string = "AgentSessionParserError";
   constructor(message: string, options?: { cause?: unknown }) {
     super(message, options);
   }
 }
 
 /** Thrown when a parser fails to read or interpret session data. */
-export class ParseError extends AgentChatParserError {
+export class ParseError extends AgentSessionParserError {
   override readonly name = "ParseError";
   constructor(
     public readonly source: string,
@@ -30,7 +30,7 @@ export class ParseError extends AgentChatParserError {
 }
 
 /** Thrown when a requested session cannot be found by ID or path. */
-export class SessionNotFoundError extends AgentChatParserError {
+export class SessionNotFoundError extends AgentSessionParserError {
   override readonly name = "SessionNotFoundError";
   constructor(public readonly sessionId: string) {
     super(`Session not found: ${sessionId}`);
@@ -38,7 +38,7 @@ export class SessionNotFoundError extends AgentChatParserError {
 }
 
 /** Thrown when a tool binary is not available on PATH. */
-export class ToolNotAvailableError extends AgentChatParserError {
+export class ToolNotAvailableError extends AgentSessionParserError {
   override readonly name = "ToolNotAvailableError";
   constructor(public readonly tool: string) {
     super(`Tool not available: ${tool}. Is it installed and on your PATH?`);
@@ -46,7 +46,7 @@ export class ToolNotAvailableError extends AgentChatParserError {
 }
 
 /** Thrown when an unknown source name is provided. */
-export class UnknownSourceError extends AgentChatParserError {
+export class UnknownSourceError extends AgentSessionParserError {
   override readonly name = "UnknownSourceError";
   constructor(public readonly source: string) {
     super(`Unknown source: "${source}". Valid sources: ${TOOL_NAMES.join(", ")}`);
@@ -54,7 +54,7 @@ export class UnknownSourceError extends AgentChatParserError {
 }
 
 /** Thrown when the session index cannot be read or written. */
-export class IndexError extends AgentChatParserError {
+export class IndexError extends AgentSessionParserError {
   override readonly name = "IndexError";
   constructor(message: string, options?: { cause?: unknown }) {
     super(message, options);
@@ -62,7 +62,7 @@ export class IndexError extends AgentChatParserError {
 }
 
 /** Thrown when file storage operations fail (read/write handoff, cache). */
-export class StorageError extends AgentChatParserError {
+export class StorageError extends AgentSessionParserError {
   override readonly name = "StorageError";
   constructor(
     public readonly filePath: string,

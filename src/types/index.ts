@@ -9,7 +9,7 @@ import type { SessionSource } from "./tool-names.js";
 export type { ContentBlock, TextBlock } from "./content-blocks.js";
 export { isSessionSource, type SessionSource, TOOL_NAMES } from "./tool-names.js";
 
-export type AgentChatParserContext = {
+export type AgentSessionParserContext = {
   log: {
     debug(...args: unknown[]): void;
     warn(...args: unknown[]): void;

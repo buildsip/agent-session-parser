@@ -2,7 +2,7 @@ import * as fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   UnifiedSession,
 } from "../types/index.js";
@@ -344,7 +344,7 @@ function stripJsonComments(content: string): string {
 }
 
 async function readSettings(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   settingsPath: string,
 ): Promise<Record<string, unknown>> {
   try {
@@ -357,7 +357,7 @@ async function readSettings(
 }
 
 async function discoverCustomStorageRoots(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   ext: ClineExtension,
   globalStorageBases: string[],
 ): Promise<string[]> {
@@ -384,7 +384,7 @@ async function discoverCustomStorageRoots(
 }
 
 async function findDirsNamed(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   root: string,
   dirName: string,
   maxDepth: number,
@@ -417,7 +417,7 @@ async function findDirsNamed(
   return found;
 }
 
-async function getJetBrainsGlobalStorageBases(ctx: AgentChatParserContext): Promise<string[]> {
+async function getJetBrainsGlobalStorageBases(ctx: AgentSessionParserContext): Promise<string[]> {
   const bases: string[] = [];
   for (const root of getJetBrainsRoots()) {
     bases.push(...(await findDirsNamed(ctx, root, "globalStorage", 3)));
@@ -434,7 +434,7 @@ function getClineCliStorageRoots(): string[] {
 }
 
 async function getTaskRoots(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filterSource?: ClineSource,
 ): Promise<TaskRoot[]> {
   const roots: TaskRoot[] = [];
@@ -485,7 +485,7 @@ async function getTaskRoots(
   });
 }
 
-async function taskHasReadableData(ctx: AgentChatParserContext, taskDir: string): Promise<boolean> {
+async function taskHasReadableData(ctx: AgentSessionParserContext, taskDir: string): Promise<boolean> {
   for (const fileName of TASK_SIGNAL_FILES) {
     if (await pathExists(path.join(taskDir, fileName))) return true;
   }
@@ -497,7 +497,7 @@ async function taskHasReadableData(ctx: AgentChatParserContext, taskDir: string)
  * Returns tuples of (task-id directory path, extension source label).
  */
 async function discoverTaskDirs(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filterSource?: ClineSource,
 ): Promise<TaskEntry[]> {
   const taskRoots = await getTaskRoots(ctx, filterSource);
@@ -590,7 +590,7 @@ async function discoverKiloDbPaths(): Promise<string[]> {
  * a user's `kilo.db`.
  */
 function openKiloDb(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   dbPath: string,
 ): { db: SqliteDatabase; close: () => void } | null {
   try {
@@ -609,7 +609,7 @@ function openKiloDb(
 }
 
 function tableColumns(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   db: SqliteDatabase,
   tableName: "session" | "message" | "part" | "project",
 ): Set<string> {
@@ -630,7 +630,7 @@ function missingColumns(columns: Set<string>, required: readonly string[]): stri
   return required.filter((column) => !columns.has(column));
 }
 
-function inspectKiloDbSchema(ctx: AgentChatParserContext, db: SqliteDatabase): KiloDbSchema {
+function inspectKiloDbSchema(ctx: AgentSessionParserContext, db: SqliteDatabase): KiloDbSchema {
   const schema: KiloDbSchema = {
     session: tableColumns(ctx, db, "session"),
     message: tableColumns(ctx, db, "message"),
@@ -667,7 +667,7 @@ function inspectKiloDbSchema(ctx: AgentChatParserContext, db: SqliteDatabase): K
   return schema;
 }
 
-function warnKiloDbFidelity(ctx: AgentChatParserContext, dbPath: string, warnings: string[]): void {
+function warnKiloDbFidelity(ctx: AgentSessionParserContext, dbPath: string, warnings: string[]): void {
   if (warnings.length === 0) return;
   ctx.log.warn(
     "kilo-code: skipping SQLite database with unsupported schema",
@@ -814,7 +814,7 @@ interface ReadResult<T> {
 }
 
 async function readJson(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
   label: string,
 ): Promise<{ parsed?: unknown; warning?: string }> {
@@ -829,7 +829,7 @@ async function readJson(
 
 /** Read and parse ui_messages.json. Returns an empty array on failure. */
 async function readUiMessages(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<ReadResult<ClineRawMessage[]>> {
   const { parsed, warning } = await readJson(ctx, filePath, UI_MESSAGES_FILE);
@@ -847,7 +847,7 @@ async function readUiMessages(
 }
 
 async function readApiConversationHistory(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<ReadResult<ClineApiMessage[]>> {
   const { parsed, warning } = await readJson(ctx, filePath, API_CONVERSATION_HISTORY_FILE);
@@ -881,7 +881,7 @@ interface TaskHistoryReadResult {
 }
 
 async function readTaskHistoryMap(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   paths: string[],
 ): Promise<TaskHistoryReadResult> {
   const itemsById: TaskHistoryMap = new Map();
@@ -897,7 +897,7 @@ async function readTaskHistoryMap(
 }
 
 async function readTaskHistoryItemFile(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
   taskId: string,
 ): Promise<{ item?: ClineTaskHistoryItem; warning?: string }> {
@@ -913,7 +913,7 @@ async function readTaskHistoryItemFile(
 }
 
 async function readTaskHistoryItem(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   paths: string[],
   taskId: string,
 ): Promise<{ item?: ClineTaskHistoryItem; warnings: string[] }> {
@@ -952,7 +952,7 @@ function inferStorageRootFromTaskDir(taskDir: string): string {
 }
 
 async function loadTaskData(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   taskDir: string,
   storageRoot: string,
   taskId: string,
@@ -986,7 +986,7 @@ async function loadTaskData(
 }
 
 async function loadTaskDataFromOriginalPath(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   originalPath: string,
   taskId: string,
 ): Promise<LoadedTaskData> {
@@ -1034,7 +1034,7 @@ function isApiRequestMetadata(msg: ClineRawMessage): boolean {
 }
 
 function parseJsonRecord(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   value: unknown,
   context: string,
 ): Record<string, unknown> | null {
@@ -1110,7 +1110,7 @@ interface KiloDbDiscoveryInfo {
  * full extraction path requires, so listing remains fast on large DBs.
  */
 function readKiloDbDiscoveryInfo(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   db: SqliteDatabase,
   schema: KiloDbSchema,
   sessionId: string,
@@ -1185,7 +1185,7 @@ function readKiloDbDiscoveryInfo(
 
 /** Read and concatenate the text content of all parts for a single message. */
 function readKiloDbPartsContent(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   db: SqliteDatabase,
   schema: KiloDbSchema,
   messageId: string,
@@ -1215,7 +1215,7 @@ function readKiloDbPartsContent(
 }
 
 function readKiloDbMessagesFromHandle(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   db: SqliteDatabase,
   schema: KiloDbSchema,
   sessionId: string,
@@ -1287,7 +1287,7 @@ function readKiloDbMessagesFromHandle(
 }
 
 function getProjectWorktree(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   db: SqliteDatabase,
   schema: KiloDbSchema,
   projectId: string | undefined,
@@ -1534,7 +1534,7 @@ function findCwdInValue(value: unknown, depth = 0): string | undefined {
 }
 
 function extractCwdFromUiApiEvents(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   messages: ClineRawMessage[],
 ): string | undefined {
   for (const message of messages) {
@@ -1584,7 +1584,7 @@ function normalizeCwd(value: string): string {
   return value.replace(/\\/g, "/");
 }
 
-function resolveCwd(ctx: AgentChatParserContext, data: LoadedTaskData): string {
+function resolveCwd(ctx: AgentSessionParserContext, data: LoadedTaskData): string {
   const raw =
     data.taskHistoryItem?.cwdOnTaskInitialization ??
     extractCwdFromUiApiEvents(ctx, data.uiMessages) ??
@@ -1594,7 +1594,7 @@ function resolveCwd(ctx: AgentChatParserContext, data: LoadedTaskData): string {
 }
 
 async function existingCompanionStats(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   files: TaskFiles,
 ): Promise<Array<{ filePath: string; size: number; birthtime: Date; mtime: Date }>> {
   const stats: Array<{ filePath: string; size: number; birthtime: Date; mtime: Date }> = [];
@@ -1639,7 +1639,7 @@ function messageTimestamps(data: LoadedTaskData): number[] {
  * filtering to a single source variant.
  */
 async function parseSessionsForSource(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filterSource?: ClineSource,
 ): Promise<UnifiedSession[]> {
   const taskEntries = await discoverTaskDirs(ctx, filterSource);
@@ -1703,7 +1703,7 @@ async function parseSessionsForSource(
   return sessions.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
 
-async function parseKiloDbSessions(ctx: AgentChatParserContext): Promise<UnifiedSession[]> {
+async function parseKiloDbSessions(ctx: AgentSessionParserContext): Promise<UnifiedSession[]> {
   const sessionsById = new Map<string, UnifiedSession>();
 
   for (const dbPath of await discoverKiloDbPaths()) {
@@ -1777,7 +1777,7 @@ async function parseKiloDbSessions(ctx: AgentChatParserContext): Promise<Unified
   );
 }
 
-async function parseKiloSessionsAll(ctx: AgentChatParserContext): Promise<UnifiedSession[]> {
+async function parseKiloSessionsAll(ctx: AgentSessionParserContext): Promise<UnifiedSession[]> {
   const sessionsById = new Map<string, UnifiedSession>();
   for (const session of await parseKiloDbSessions(ctx)) {
     sessionsById.set(session.id, session);
@@ -1797,7 +1797,7 @@ async function parseKiloSessionsAll(ctx: AgentChatParserContext): Promise<Unifie
 
 /** Extract visible messages for all three Cline-family variants. */
 async function parseMessagesShared(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const data = await loadTaskDataFromOriginalPath(ctx, session.originalPath, session.id);
@@ -1832,7 +1832,7 @@ function emptyKiloDbConversation(session: UnifiedSession): ParsedAgentConversati
 }
 
 async function extractKiloDbContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const handle = openKiloDb(ctx, session.originalPath);
@@ -1871,13 +1871,13 @@ async function extractKiloDbContext(
 // ── Public API: Cline ───────────────────────────────────────────────────────
 
 /** Discover sessions for Cline only */
-export async function parseClineSessions(ctx: AgentChatParserContext): Promise<UnifiedSession[]> {
+export async function parseClineSessions(ctx: AgentSessionParserContext): Promise<UnifiedSession[]> {
   return parseSessionsForSource(ctx, "cline");
 }
 
 /** Extract visible messages from a Cline session */
 export async function extractClineContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   return parseMessagesShared(ctx, session);
@@ -1886,13 +1886,13 @@ export async function extractClineContext(
 // ── Public API: Roo Code ────────────────────────────────────────────────────
 
 /** Discover sessions for Roo Code only */
-export async function parseRooCodeSessions(ctx: AgentChatParserContext): Promise<UnifiedSession[]> {
+export async function parseRooCodeSessions(ctx: AgentSessionParserContext): Promise<UnifiedSession[]> {
   return parseSessionsForSource(ctx, "roo-code");
 }
 
 /** Extract visible messages from a Roo Code session */
 export async function extractRooCodeContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   return parseMessagesShared(ctx, session);
@@ -1902,14 +1902,14 @@ export async function extractRooCodeContext(
 
 /** Discover sessions for Kilo Code only */
 export async function parseKiloCodeSessions(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
 ): Promise<UnifiedSession[]> {
   return parseKiloSessionsAll(ctx);
 }
 
 /** Extract visible messages from a Kilo Code session */
 export async function extractKiloCodeContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   if (isKiloDbSession(session)) return extractKiloDbContext(ctx, session);

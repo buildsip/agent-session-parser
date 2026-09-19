@@ -1,7 +1,7 @@
 import { UnknownSourceError } from "../errors.js";
 import { adapters } from "../parsers/registry.js";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   SessionParseOptions,
   UnifiedSession,
@@ -11,7 +11,7 @@ import type {
  * List sessions by scanning native tool storage read-only.
  */
 export async function listSessions(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   options: SessionParseOptions = {},
 ): Promise<UnifiedSession[]> {
   const selectedAdapters = options.source ? [adapters[options.source]] : Object.values(adapters);
@@ -36,7 +36,7 @@ export async function listSessions(
  * Find a session by ID.
  */
 export async function findSession(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   id: string,
 ): Promise<UnifiedSession | null> {
   const all = await listSessions(ctx);
@@ -47,7 +47,7 @@ export async function findSession(
  * Parse the full visible conversation for a session based on its source.
  */
 export async function parseSession(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const adapter = adapters[session.source];

@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   UnifiedSession,
 } from "../types/index.js";
@@ -23,7 +23,7 @@ function getCopilotSessionsDir(): string {
 /**
  * Find all Copilot session directories
  */
-async function findSessionDirs(ctx: AgentChatParserContext): Promise<string[]> {
+async function findSessionDirs(ctx: AgentSessionParserContext): Promise<string[]> {
   const sessionsDir = getCopilotSessionsDir();
   if (!fs.existsSync(sessionsDir)) return [];
   return listSubdirectories(ctx, sessionsDir).filter((dir) =>
@@ -74,7 +74,7 @@ function parseWorkspaceYaml(content: string): Record<string, unknown> {
   return result;
 }
 
-function parseWorkspace(ctx: AgentChatParserContext, workspacePath: string) {
+function parseWorkspace(ctx: AgentSessionParserContext, workspacePath: string) {
   try {
     const content = fs.readFileSync(workspacePath, "utf8");
     const parsed = CopilotWorkspaceSchema.safeParse(parseWorkspaceYaml(content));
@@ -99,7 +99,7 @@ function parseWorkspace(ctx: AgentChatParserContext, workspacePath: string) {
  * latest currentModel observed during the bounded scan.
  */
 async function extractModel(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   eventsPath: string,
 ): Promise<string | undefined> {
   let selected: string | undefined;
@@ -128,7 +128,7 @@ async function extractModel(
 /**
  * Parse all Copilot sessions
  */
-export async function parseCopilotSessions(ctx: AgentChatParserContext): Promise<UnifiedSession[]> {
+export async function parseCopilotSessions(ctx: AgentSessionParserContext): Promise<UnifiedSession[]> {
   const dirs = await findSessionDirs(ctx);
   const sessions: UnifiedSession[] = [];
 
@@ -170,7 +170,7 @@ export async function parseCopilotSessions(ctx: AgentChatParserContext): Promise
  * Extract visible messages from a Copilot session.
  */
 export async function extractCopilotContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const eventsPath = path.join(session.originalPath, "events.jsonl");
@@ -217,7 +217,7 @@ export async function extractCopilotContext(
 const MAX_TIMESTAMP_SCAN_BYTES = 1024 * 1024;
 
 async function extractLastEventTimestamp(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   eventsPath: string,
   eventsFileSizeBytes?: number,
 ): Promise<Date | undefined> {

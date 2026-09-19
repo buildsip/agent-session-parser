@@ -4,7 +4,7 @@
 
 // ── Errors ───────────────────────────────────────────────────────────
 export {
-  AgentChatParserError,
+  AgentSessionParserError,
   IndexError,
   ParseError,
   SessionNotFoundError,
@@ -19,7 +19,7 @@ export * from "./parsers/index.js";
 // ── Types ────────────────────────────────────────────────────────────
 export type { ContentBlock, TextBlock } from "./types/content-blocks.js";
 export type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   Message,
   ParsedAgentConversation,
   SessionSource,

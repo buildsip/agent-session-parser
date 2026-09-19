@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   UnifiedSession,
 } from "../types/index.js";
@@ -224,7 +224,7 @@ function extractLineModel(line: NormalizedCursorLine): string | undefined {
 }
 
 async function readNormalizedTranscript(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<NormalizedCursorLine[]> {
   const records = await readJsonlFile(ctx, filePath);
@@ -252,7 +252,7 @@ async function readNormalizedTranscript(
  * filename — `getSessionId()` derives the UUID, and `parseCursorSessions()`
  * deduplicates by id when both layouts coexist for the same session.
  */
-async function findTranscriptFiles(ctx: AgentChatParserContext): Promise<string[]> {
+async function findTranscriptFiles(ctx: AgentSessionParserContext): Promise<string[]> {
   if (!fs.existsSync(CURSOR_PROJECTS_DIR)) return [];
 
   const files: string[] = [];
@@ -320,7 +320,7 @@ function getSessionId(filePath: string): string {
  * Falls back to slug-derived cwd when `repo.json` is absent or unreadable.
  */
 async function resolveProjectCwd(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   projectDir: string,
   slug: string,
   cache: Map<string, string>,
@@ -365,7 +365,7 @@ async function resolveProjectCwd(
  * Scan the transcript head for discovery metadata.
  */
 async function parseSessionInfo(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<{
   firstUserMessage: string;
@@ -413,7 +413,7 @@ async function parseSessionInfo(
 /**
  * Parse all Cursor sessions
  */
-export async function parseCursorSessions(ctx: AgentChatParserContext): Promise<UnifiedSession[]> {
+export async function parseCursorSessions(ctx: AgentSessionParserContext): Promise<UnifiedSession[]> {
   const files = await findTranscriptFiles(ctx);
   const sessionsById = new Map<string, UnifiedSession>();
   const projectCwdCache = new Map<string, string>();
@@ -464,7 +464,7 @@ export async function parseCursorSessions(ctx: AgentChatParserContext): Promise<
  * Extract visible messages from a Cursor session.
  */
 export async function extractCursorContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const lines = await readNormalizedTranscript(ctx, session.originalPath);

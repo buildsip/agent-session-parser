@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import * as path from "node:path";
 import { z } from "zod";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   UnifiedSession,
 } from "../types/index.js";
@@ -65,7 +65,7 @@ function getOpenCodeStorageDir(): string {
   return path.join(getOpenCodeBaseDir(), "storage");
 }
 
-function getOpenCodeDbPaths(ctx: AgentChatParserContext): string[] {
+function getOpenCodeDbPaths(ctx: AgentSessionParserContext): string[] {
   if (process.env.OPENCODE_DB) {
     return [process.env.OPENCODE_DB];
   }
@@ -111,7 +111,7 @@ function renderHighValuePart(partData: Record<string, unknown>): { content?: str
 /**
  * Check if SQLite DB exists and is usable
  */
-function hasSqliteDb(ctx: AgentChatParserContext): boolean {
+function hasSqliteDb(ctx: AgentSessionParserContext): boolean {
   return getOpenCodeDbPaths(ctx).some((dbPath) => fs.existsSync(dbPath));
 }
 
@@ -119,7 +119,7 @@ function hasSqliteDb(ctx: AgentChatParserContext): boolean {
  * Open SQLite database using node:sqlite (built-in)
  */
 function openDb(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   dbPath: string,
 ): { db: SqliteDatabase; close: () => void } | null {
   try {
@@ -137,7 +137,7 @@ function openDb(
 /**
  * Find all OpenCode session files
  */
-async function findSessionFiles(ctx: AgentChatParserContext): Promise<string[]> {
+async function findSessionFiles(ctx: AgentSessionParserContext): Promise<string[]> {
   const sessionDir = path.join(getOpenCodeStorageDir(), "session");
   const results: string[] = [];
   for (const projectDir of listSubdirectories(ctx, sessionDir)) {
@@ -154,7 +154,7 @@ async function findSessionFiles(ctx: AgentChatParserContext): Promise<string[]> 
 /**
  * Parse a single OpenCode session file
  */
-function parseSessionFile(ctx: AgentChatParserContext, filePath: string): OpenCodeSession | null {
+function parseSessionFile(ctx: AgentSessionParserContext, filePath: string): OpenCodeSession | null {
   try {
     const content = fs.readFileSync(filePath, "utf8");
     const result = OpenCodeSessionSchema.safeParse(JSON.parse(content));
@@ -170,7 +170,7 @@ function parseSessionFile(ctx: AgentChatParserContext, filePath: string): OpenCo
 /**
  * Load project info to get worktree/cwd
  */
-function loadProjectInfo(ctx: AgentChatParserContext, projectId: string): OpenCodeProject | null {
+function loadProjectInfo(ctx: AgentSessionParserContext, projectId: string): OpenCodeProject | null {
   const projectFile = path.join(getOpenCodeStorageDir(), "project", `${projectId}.json`);
   try {
     if (fs.existsSync(projectFile)) {
@@ -188,7 +188,7 @@ function loadProjectInfo(ctx: AgentChatParserContext, projectId: string): OpenCo
 /**
  * Get first user message from session messages
  */
-function getFirstUserMessage(ctx: AgentChatParserContext, sessionId: string): string {
+function getFirstUserMessage(ctx: AgentSessionParserContext, sessionId: string): string {
   const messageDir = path.join(getOpenCodeStorageDir(), "message", sessionId);
   if (!fs.existsSync(messageDir)) return "";
 
@@ -241,7 +241,7 @@ function getFirstUserMessage(ctx: AgentChatParserContext, sessionId: string): st
  * Parse all OpenCode sessions - SQLite first, then JSON fallback
  */
 export async function parseOpenCodeSessions(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
 ): Promise<UnifiedSession[]> {
   // Try SQLite database first (newer OpenCode versions)
   if (hasSqliteDb(ctx)) {
@@ -256,7 +256,7 @@ export async function parseOpenCodeSessions(
 /**
  * Parse sessions from SQLite database
  */
-function parseSessionsFromSqlite(ctx: AgentChatParserContext): UnifiedSession[] {
+function parseSessionsFromSqlite(ctx: AgentSessionParserContext): UnifiedSession[] {
   const sessionsById = new Map<string, UnifiedSession>();
 
   for (const dbPath of getOpenCodeDbPaths(ctx)) {
@@ -311,7 +311,7 @@ function parseSessionsFromSqlite(ctx: AgentChatParserContext): UnifiedSession[] 
 /**
  * Parse sessions from JSON files (legacy)
  */
-async function parseSessionsFromJson(ctx: AgentChatParserContext): Promise<UnifiedSession[]> {
+async function parseSessionsFromJson(ctx: AgentSessionParserContext): Promise<UnifiedSession[]> {
   const files = await findSessionFiles(ctx);
   const sessions: UnifiedSession[] = [];
 
@@ -348,7 +348,7 @@ async function parseSessionsFromJson(ctx: AgentChatParserContext): Promise<Unifi
 /**
  * Read all messages from an OpenCode session - SQLite first, then JSON fallback
  */
-function readAllMessages(ctx: AgentChatParserContext, sessionId: string): MessageDraft[] {
+function readAllMessages(ctx: AgentSessionParserContext, sessionId: string): MessageDraft[] {
   // Try SQLite first
   if (hasSqliteDb(ctx)) {
     const msgs = readMessagesFromSqlite(ctx, sessionId);
@@ -362,7 +362,7 @@ function readAllMessages(ctx: AgentChatParserContext, sessionId: string): Messag
 /**
  * Read messages from SQLite database
  */
-function readMessagesFromSqlite(ctx: AgentChatParserContext, sessionId: string): MessageDraft[] {
+function readMessagesFromSqlite(ctx: AgentSessionParserContext, sessionId: string): MessageDraft[] {
   for (const dbPath of getOpenCodeDbPaths(ctx)) {
     const handle = openDb(ctx, dbPath);
     if (!handle) continue;
@@ -428,7 +428,7 @@ function readMessagesFromSqlite(ctx: AgentChatParserContext, sessionId: string):
 /**
  * Read messages from JSON files (legacy)
  */
-function readMessagesFromJson(ctx: AgentChatParserContext, sessionId: string): MessageDraft[] {
+function readMessagesFromJson(ctx: AgentSessionParserContext, sessionId: string): MessageDraft[] {
   const messages: MessageDraft[] = [];
   const messageDir = path.join(getOpenCodeStorageDir(), "message", sessionId);
 
@@ -488,7 +488,7 @@ function readMessagesFromJson(ctx: AgentChatParserContext, sessionId: string): M
  * Extract visible messages from an OpenCode session.
  */
 export async function extractOpenCodeContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   return {

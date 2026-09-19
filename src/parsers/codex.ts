@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   SessionParseOptions,
   UnifiedSession,
@@ -21,7 +21,7 @@ const MAX_METADATA_SCAN_BYTES = 1024 * 1024;
 /**
  * Find all Codex session files recursively
  */
-async function findSessionFiles(ctx: AgentChatParserContext): Promise<string[]> {
+async function findSessionFiles(ctx: AgentSessionParserContext): Promise<string[]> {
   return [CODEX_SESSIONS_DIR, CODEX_ARCHIVED_SESSIONS_DIR].flatMap((dir) =>
     findFiles(ctx, dir, {
       match: (entry) => entry.name.startsWith("rollout-") && entry.name.endsWith(".jsonl"),
@@ -33,7 +33,7 @@ async function findSessionFiles(ctx: AgentChatParserContext): Promise<string[]> 
  * Parse session metadata and first user message
  */
 async function parseSessionInfo(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<{
   meta: CodexSessionMeta | null;
@@ -101,7 +101,7 @@ function parseFilename(filename: string): { timestamp: Date; id: string } | null
  * Parse all Codex sessions
  */
 export async function parseCodexSessions(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   options: SessionParseOptions = {},
 ): Promise<UnifiedSession[]> {
   const files = await findSessionFiles(ctx);
@@ -174,7 +174,7 @@ export async function parseCodexSessions(
  * Read all messages from a Codex session
  */
 async function readAllMessages(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<CodexMessage[]> {
   return readJsonlFile(ctx, filePath);
@@ -184,7 +184,7 @@ async function readAllMessages(
  * Extract visible messages from a Codex session.
  */
 export async function extractCodexContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const messages = await readAllMessages(ctx, session.originalPath);
@@ -266,7 +266,7 @@ function parseValidDate(value: string | undefined): Date | undefined {
 }
 
 async function extractLastCodexTimestamp(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<Date | undefined> {
   let lastTimestamp: Date | undefined;

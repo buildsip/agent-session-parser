@@ -26,7 +26,7 @@ describe("public API contract", () => {
   });
 
   it("lists sessions and parses all visible user/assistant messages", async () => {
-    const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "agent-chat-parser-contract-"));
+    const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "agent-session-parser-contract-"));
     tmpDirs.push(codexHome);
     process.env.CODEX_HOME = codexHome;
 

@@ -3,7 +3,7 @@
  */
 import * as fs from "fs";
 import * as path from "path";
-import type { AgentChatParserContext } from "../types/index.js";
+import type { AgentSessionParserContext } from "../types/index.js";
 
 export interface FindFilesOptions {
   /** Filter predicate — return true to include a file */
@@ -20,7 +20,7 @@ export interface FindFilesOptions {
  * Silently skips directories that can't be read.
  */
 export function findFiles(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   root: string,
   options: FindFilesOptions,
 ): string[] {
@@ -68,7 +68,7 @@ export function findFiles(
  * List immediate subdirectories of a given path.
  * Returns an empty array if the path doesn't exist.
  */
-export function listSubdirectories(ctx: AgentChatParserContext, dir: string): string[] {
+export function listSubdirectories(ctx: AgentSessionParserContext, dir: string): string[] {
   if (!fs.existsSync(dir)) return [];
 
   try {

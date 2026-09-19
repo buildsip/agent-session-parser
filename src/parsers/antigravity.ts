@@ -6,7 +6,7 @@ import { createRequire } from "node:module";
 import * as path from "node:path";
 import * as readline from "node:readline";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   SessionSource,
   UnifiedSession,
@@ -177,7 +177,7 @@ async function exists(filePath: string): Promise<boolean> {
   }
 }
 
-async function readDirSafe(ctx: AgentChatParserContext, dirPath: string): Promise<fs.Dirent[]> {
+async function readDirSafe(ctx: AgentSessionParserContext, dirPath: string): Promise<fs.Dirent[]> {
   try {
     return await fsp.readdir(dirPath, { withFileTypes: true });
   } catch (err) {
@@ -187,7 +187,7 @@ async function readDirSafe(ctx: AgentChatParserContext, dirPath: string): Promis
 }
 
 async function statSafe(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<fs.Stats | undefined> {
   try {
@@ -275,7 +275,7 @@ function addRecord(
 }
 
 async function discoverConversationRecords(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   records: Map<string, AntigravityRecord>,
 ): Promise<void> {
   const conversationsDir = getConversationsDir();
@@ -287,7 +287,7 @@ async function discoverConversationRecords(
 }
 
 async function findBrainArtifactPath(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   brainDir: string,
   baseName: string,
 ): Promise<string | undefined> {
@@ -308,7 +308,7 @@ async function findBrainArtifactPath(
     .sort((left, right) => right.stats.mtimeMs - left.stats.mtimeMs)[0]?.candidate;
 }
 
-async function hasBrainArtifacts(ctx: AgentChatParserContext, dirPath: string): Promise<boolean> {
+async function hasBrainArtifacts(ctx: AgentSessionParserContext, dirPath: string): Promise<boolean> {
   for (const fileName of BRAIN_ARTIFACT_BASE_FILES) {
     if (await findBrainArtifactPath(ctx, dirPath, fileName)) return true;
   }
@@ -316,7 +316,7 @@ async function hasBrainArtifacts(ctx: AgentChatParserContext, dirPath: string): 
 }
 
 async function discoverBrainRecords(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   records: Map<string, AntigravityRecord>,
 ): Promise<void> {
   const brainDir = getBrainDir();
@@ -356,7 +356,7 @@ function parseLegacyLine(line: string): AntigravityEntry | null {
 }
 
 async function parseLegacySessionFile(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<AntigravityEntry[]> {
   try {
@@ -377,7 +377,7 @@ async function parseLegacySessionFile(
   }
 }
 
-async function findLegacySessionFiles(ctx: AgentChatParserContext): Promise<string[]> {
+async function findLegacySessionFiles(ctx: AgentSessionParserContext): Promise<string[]> {
   const codeTrackerDir = getCodeTrackerDir();
   const pendingDirs = [codeTrackerDir];
   const files: string[] = [];
@@ -401,7 +401,7 @@ async function findLegacySessionFiles(ctx: AgentChatParserContext): Promise<stri
 }
 
 async function discoverLegacyRecords(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   records: Map<string, AntigravityRecord>,
 ): Promise<void> {
   const codeTrackerDir = getCodeTrackerDir();
@@ -422,7 +422,7 @@ async function discoverLegacyRecords(
 }
 
 function openDb(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   dbPath: string,
 ): { db: SqliteDatabase; close: () => void } | null {
   try {
@@ -442,7 +442,7 @@ function openDb(
 }
 
 function readStateValue(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   dbPath: string,
   key: string,
 ): string | undefined {
@@ -776,7 +776,7 @@ function parseStateSummaryMap(value: string): Map<string, StateSummary> {
   return summaries;
 }
 
-function loadStateSummaries(ctx: AgentChatParserContext): Map<string, StateSummary> {
+function loadStateSummaries(ctx: AgentSessionParserContext): Map<string, StateSummary> {
   const combined = new Map<string, StateSummary>();
 
   for (const dbPath of getStateDbPaths()) {
@@ -795,7 +795,7 @@ function loadStateSummaries(ctx: AgentChatParserContext): Map<string, StateSumma
 }
 
 async function discoverStateRecords(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   records: Map<string, AntigravityRecord>,
 ): Promise<void> {
   for (const [id, state] of loadStateSummaries(ctx)) {
@@ -921,7 +921,7 @@ function runExecFile(
   });
 }
 
-async function getProcessRecords(ctx: AgentChatParserContext): Promise<ProcessRecord[]> {
+async function getProcessRecords(ctx: AgentSessionParserContext): Promise<ProcessRecord[]> {
   try {
     const command =
       process.platform === "win32"
@@ -958,7 +958,7 @@ async function getProcessRecords(ctx: AgentChatParserContext): Promise<ProcessRe
 }
 
 async function getListeningPorts(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   pid: string | undefined,
 ): Promise<number[]> {
   if (!pid || process.platform === "win32") return [];
@@ -984,7 +984,7 @@ async function getListeningPorts(
   }
 }
 
-async function findRpcConnection(ctx: AgentChatParserContext): Promise<RpcConnection | null> {
+async function findRpcConnection(ctx: AgentSessionParserContext): Promise<RpcConnection | null> {
   if (process.env.ANTIGRAVITY_DISABLE_RPC === "1") return null;
 
   // Filter by the cheap command-line predicate first so we only spawn
@@ -1003,7 +1003,7 @@ async function findRpcConnection(ctx: AgentChatParserContext): Promise<RpcConnec
 }
 
 function callRpc(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   connection: RpcConnection,
   method: string,
   payload: Record<string, unknown>,
@@ -1068,7 +1068,7 @@ function callRpc(
 }
 
 async function discoverLiveRecords(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   records: Map<string, AntigravityRecord>,
 ): Promise<void> {
   const connection = await findRpcConnection(ctx);
@@ -1087,7 +1087,7 @@ function normalizeModelName(model: string): string {
 }
 
 async function readArtifact(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<string | undefined> {
   try {
@@ -1108,7 +1108,7 @@ function firstMarkdownHeading(markdown: string): string | undefined {
 }
 
 async function inferCwdFromBrain(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   brainDir: string | undefined,
 ): Promise<string | undefined> {
   if (!brainDir) return undefined;
@@ -1125,7 +1125,7 @@ async function inferCwdFromBrain(
 }
 
 async function pathStats(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   paths: string[],
 ): Promise<{ bytes: number; createdAt?: Date; updatedAt?: Date }> {
   let bytes = 0;
@@ -1148,7 +1148,7 @@ async function pathStats(
 }
 
 async function brainArtifactPaths(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   brainDir: string | undefined,
 ): Promise<string[]> {
   if (!brainDir) return [];
@@ -1161,7 +1161,7 @@ async function brainArtifactPaths(
 }
 
 async function buildSessionFromRecord(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   record: AntigravityRecord,
 ): Promise<UnifiedSession | null> {
   if (record.legacyPath) return buildLegacySession(ctx, record.legacyPath, record.id);
@@ -1201,7 +1201,7 @@ async function buildSessionFromRecord(
 }
 
 async function buildLegacySession(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
   prefixedId?: string,
 ): Promise<UnifiedSession | null> {
@@ -1228,7 +1228,7 @@ async function buildLegacySession(
 }
 
 async function discoverRecords(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
 ): Promise<Map<string, AntigravityRecord>> {
   const records = new Map<string, AntigravityRecord>();
   await discoverConversationRecords(ctx, records);
@@ -1240,7 +1240,7 @@ async function discoverRecords(
 }
 
 export async function parseAntigravitySessions(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
 ): Promise<UnifiedSession[]> {
   const records = await discoverRecords(ctx);
   const sessions: UnifiedSession[] = [];
@@ -1254,7 +1254,7 @@ export async function parseAntigravitySessions(
 }
 
 async function readLegacyMessages(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
   fallbackDate: Date,
 ): Promise<MessageDraft[]> {
@@ -1278,7 +1278,7 @@ function extractSessionId(session: UnifiedSession): string {
 }
 
 async function resolveBrainDirForSession(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<string | undefined> {
   const id = extractSessionId(session);
@@ -1297,7 +1297,7 @@ function taskFromMarkdown(markdown: string): string | undefined {
 }
 
 async function readOfflineArtifacts(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   brainDir: string | undefined,
 ): Promise<{
   messages: MessageDraft[];
@@ -1469,7 +1469,7 @@ function extractStepsResponse(response: unknown): unknown[] {
 }
 
 async function extractLiveContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
   preconnected?: RpcConnection,
 ): Promise<RpcStepExtraction | null> {
@@ -1517,7 +1517,7 @@ function shouldAutoLaunchAntigravity(): boolean {
   return Boolean(process.stdout.isTTY);
 }
 
-function spawnAntigravity(ctx: AgentChatParserContext): boolean {
+function spawnAntigravity(ctx: AgentSessionParserContext): boolean {
   try {
     let child: childProcess.ChildProcess;
     if (process.platform === "darwin") {
@@ -1549,7 +1549,7 @@ function spawnAntigravity(ctx: AgentChatParserContext): boolean {
 }
 
 async function pollForRpcConnection(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   timeoutMs: number,
   intervalMs: number,
 ): Promise<RpcConnection | null> {
@@ -1568,7 +1568,7 @@ async function pollForRpcConnection(
   return null;
 }
 
-async function tryAutoLaunchAndConnect(ctx: AgentChatParserContext): Promise<RpcConnection | null> {
+async function tryAutoLaunchAndConnect(ctx: AgentSessionParserContext): Promise<RpcConnection | null> {
   if (!shouldAutoLaunchAntigravity()) return null;
 
   // gate the spawn on rpc actually being offline. extractLiveContext returns
@@ -1612,7 +1612,7 @@ async function tryAutoLaunchAndConnect(ctx: AgentChatParserContext): Promise<Rpc
 }
 
 async function extractOfflineContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const brainDir = await resolveBrainDirForSession(ctx, session);
@@ -1625,7 +1625,7 @@ async function extractOfflineContext(
 }
 
 export async function extractAntigravityContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   if (session.id.startsWith("legacy:")) {

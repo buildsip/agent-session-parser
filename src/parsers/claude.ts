@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   SessionParseOptions,
   UnifiedSession,
@@ -25,7 +25,7 @@ export function claudeProjectSlugFromCwd(cwd: string): string {
  * Find all Claude session files recursively
  */
 async function findSessionFiles(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   options: SessionParseOptions = {},
 ): Promise<string[]> {
   const roots = options.cwd
@@ -46,7 +46,7 @@ async function findSessionFiles(
  * Parse session metadata and first user message
  */
 async function parseSessionInfo(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<{
   sessionId: string;
@@ -108,7 +108,7 @@ async function parseSessionInfo(
  * Parse all Claude sessions
  */
 export async function parseClaudeSessions(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   options: SessionParseOptions = {},
 ): Promise<UnifiedSession[]> {
   const files = await findSessionFiles(ctx, options);
@@ -193,7 +193,7 @@ function getClaudeMessageTimestamp(msg: ClaudeMessage): string | undefined {
  * Extract visible messages from a Claude session.
  */
 export async function extractClaudeContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const messages = await readJsonlFile<ClaudeMessage>(ctx, session.originalPath);

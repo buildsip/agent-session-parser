@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as readline from "node:readline";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   UnifiedSession,
 } from "../types/index.js";
@@ -30,7 +30,7 @@ type GeminiJsonlRecord = Partial<GeminiSessionData> & {
 /**
  * Find all Gemini session files (new and legacy storage formats)
  */
-async function findSessionFiles(ctx: AgentChatParserContext): Promise<string[]> {
+async function findSessionFiles(ctx: AgentSessionParserContext): Promise<string[]> {
   const results: string[] = [];
 
   // Current format: ~/.gemini/tmp/<project-hash>/chats/*.jsonl
@@ -63,7 +63,7 @@ async function findSessionFiles(ctx: AgentChatParserContext): Promise<string[]> 
   return results;
 }
 
-async function loadProjectDirectoryMap(ctx: AgentChatParserContext): Promise<Map<string, string>> {
+async function loadProjectDirectoryMap(ctx: AgentSessionParserContext): Promise<Map<string, string>> {
   try {
     const content = await fs.promises.readFile(GEMINI_PROJECTS_PATH, "utf8");
     const parsed = JSON.parse(content) as { projects?: Record<string, string> };
@@ -76,7 +76,7 @@ async function loadProjectDirectoryMap(ctx: AgentChatParserContext): Promise<Map
 }
 
 function toGeminiMessage(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   record: GeminiJsonlRecord,
 ): GeminiMessage | null {
   const result = GeminiMessageSchema.safeParse(record);
@@ -105,7 +105,7 @@ function findRewindIndex(messages: GeminiMessage[], messageId: string): number {
 }
 
 async function parseJsonlSessionFile(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<GeminiSessionData | null> {
   const stream = fs.createReadStream(filePath, { encoding: "utf8" });
@@ -199,7 +199,7 @@ async function parseJsonlSessionFile(
  * Parse a single Gemini session file
  */
 async function parseSessionFile(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<GeminiSessionData | null> {
   try {
@@ -240,7 +240,7 @@ function extractFirstUserMessage(session: GeminiSession): string {
 /**
  * Parse all Gemini sessions
  */
-export async function parseGeminiSessions(ctx: AgentChatParserContext): Promise<UnifiedSession[]> {
+export async function parseGeminiSessions(ctx: AgentSessionParserContext): Promise<UnifiedSession[]> {
   const files = await findSessionFiles(ctx);
   const projectDirectories = await loadProjectDirectoryMap(ctx);
   const sessions: UnifiedSession[] = [];
@@ -278,7 +278,7 @@ export async function parseGeminiSessions(ctx: AgentChatParserContext): Promise<
  * Extract visible messages from a Gemini session.
  */
 export async function extractGeminiContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const sessionData = await parseSessionFile(ctx, session.originalPath);

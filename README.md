@@ -1,4 +1,4 @@
-# agent-chat-parser
+# agent-session-parser
 
 Read-only parsers for local AI agent conversation storage.
 
@@ -7,13 +7,13 @@ This package discovers native session records from supported tools and parses th
 Requires Node.js 22.5 or newer.
 
 ```bash
-npm install agent-chat-parser zod
+npm install agent-session-parser zod
 ```
 
 ## API
 
 ```ts
-import { listSessions, parseSession } from "agent-chat-parser";
+import { listSessions, parseSession } from "agent-session-parser";
 
 const ctx = {
   log: {
@@ -77,4 +77,4 @@ Options:
 }
 ```
 
-All supported sources remain registered. Tool-specific parsers are exported from `agent-chat-parser` for lower-level use.
+All supported sources remain registered. Tool-specific parsers are exported from `agent-session-parser` for lower-level use.

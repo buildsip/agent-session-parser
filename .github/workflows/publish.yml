@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   publish:
-    name: Publish agent-chat-parser
+    name: Publish agent-session-parser
     runs-on: ubuntu-latest
 
     steps:

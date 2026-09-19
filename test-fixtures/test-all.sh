@@ -1,12 +1,12 @@
 #!/bin/bash
 # ============================================================================
-# Agent Chat Parser Integration Test Runner
+# Agent Session Parser Integration Test Runner
 #
 # Symlinks test fixtures to the paths each parser expects, builds the project,
 # runs the test harness, then cleans up — restoring any pre-existing data.
 #
 # Usage:  bash test-fixtures/test-all.sh
-#         (run from the agent-chat-parser root directory)
+#         (run from the agent-session-parser root directory)
 # ============================================================================
 
 set -euo pipefail
@@ -85,7 +85,7 @@ safe_copy() {
 }
 
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║     Agent Chat Parser Integration Test Runner                ║"
+echo "║     Agent Session Parser Integration Test Runner                ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 

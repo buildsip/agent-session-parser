@@ -1,6 +1,6 @@
 # REVIEW.md
 
-Review checklist for `agent-chat-parser`.
+Review checklist for `agent-session-parser`.
 
 ## Critical Areas
 

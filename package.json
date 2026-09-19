@@ -1,5 +1,5 @@
 {
-  "name": "agent-chat-parser",
+  "name": "agent-session-parser",
   "version": "0.1.0",
   "description": "Parse AI agent conversation sessions stored on the user's machine.",
   "license": "UNLICENSED",
@@ -50,13 +50,13 @@
     "oxlint": "^1.65.0",
     "oxfmt": "^0.50.0"
   },
-  "homepage": "https://github.com/buildsip/agent-chat-parser#readme",
+  "homepage": "https://github.com/buildsip/agent-session-parser#readme",
   "bugs": {
-    "url": "https://github.com/buildsip/agent-chat-parser/issues"
+    "url": "https://github.com/buildsip/agent-session-parser/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/buildsip/agent-chat-parser.git"
+    "url": "git+https://github.com/buildsip/agent-session-parser.git"
   },
   "files": [
     "dist",

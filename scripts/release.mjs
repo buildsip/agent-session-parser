@@ -18,6 +18,6 @@ function run(command, args, cwd) {
   }
 }
 
-run("pnpm", ["version", bump, "--message", "chore: release agent-chat-parser@%s"], ".");
+run("pnpm", ["version", bump, "--message", "chore: release agent-session-parser@%s"], ".");
 run("git", ["push"]);
 run("git", ["push", "--follow-tags"]);

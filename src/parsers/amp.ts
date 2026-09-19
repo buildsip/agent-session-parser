@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   UnifiedSession,
 } from "../types/index.js";
@@ -63,7 +63,7 @@ function safeFileURLToPath(uri: string): string {
 /**
  * Find all Amp thread JSON files
  */
-function findSessionFiles(ctx: AgentChatParserContext): string[] {
+function findSessionFiles(ctx: AgentSessionParserContext): string[] {
   return findFiles(ctx, AMP_BASE_DIR, {
     match: (entry) => entry.name.endsWith(".json"),
     recursive: false,
@@ -74,7 +74,7 @@ function findSessionFiles(ctx: AgentChatParserContext): string[] {
  * Read and parse a thread file.
  */
 function readThreadFile(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): { thread: AmpThread; raw: string } | null {
   try {
@@ -95,7 +95,7 @@ function readThreadFile(
   }
 }
 
-function parseThreadFile(ctx: AgentChatParserContext, filePath: string): AmpThread | null {
+function parseThreadFile(ctx: AgentSessionParserContext, filePath: string): AmpThread | null {
   return readThreadFile(ctx, filePath)?.thread ?? null;
 }
 
@@ -151,7 +151,7 @@ function extractAmpMetadata(
 /**
  * Parse all Amp sessions
  */
-export async function parseAmpSessions(ctx: AgentChatParserContext): Promise<UnifiedSession[]> {
+export async function parseAmpSessions(ctx: AgentSessionParserContext): Promise<UnifiedSession[]> {
   const files = findSessionFiles(ctx);
   const sessions: UnifiedSession[] = [];
 
@@ -190,7 +190,7 @@ export async function parseAmpSessions(ctx: AgentChatParserContext): Promise<Uni
  * Extract visible messages from an Amp session.
  */
 export async function extractAmpContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const thread = parseThreadFile(ctx, session.originalPath);

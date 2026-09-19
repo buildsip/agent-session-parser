@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   SessionParseOptions,
   UnifiedSession,
@@ -29,7 +29,7 @@ const DROID_SESSION_DIRS = [DROID_PROJECTS_DIR, DROID_SESSIONS_DIR];
  * - ~/.factory/projects/<workspace-slug>/<uuid>.jsonl
  * - ~/.factory/sessions/<workspace-slug>/<uuid>.jsonl
  */
-async function findSessionFiles(ctx: AgentChatParserContext): Promise<string[]> {
+async function findSessionFiles(ctx: AgentSessionParserContext): Promise<string[]> {
   const files = new Set<string>();
   for (const root of DROID_SESSION_DIRS) {
     for (const filePath of findFiles(ctx, root, {
@@ -47,7 +47,7 @@ async function findSessionFiles(ctx: AgentChatParserContext): Promise<string[]> 
 /**
  * Read companion .settings.json for a session
  */
-function readSettings(ctx: AgentChatParserContext, jsonlPath: string): DroidSettings | null {
+function readSettings(ctx: AgentSessionParserContext, jsonlPath: string): DroidSettings | null {
   const settingsPath = jsonlPath.replace(/\.jsonl$/, ".settings.json");
   try {
     if (fs.existsSync(settingsPath)) {
@@ -68,7 +68,7 @@ function readSettings(ctx: AgentChatParserContext, jsonlPath: string): DroidSett
  * Parse session metadata from session_start event and first user message
  */
 async function parseSessionInfo(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<{
   sessionStart: DroidSessionStart | null;
@@ -132,7 +132,7 @@ async function parseSessionInfo(
  * Parse all Droid sessions
  */
 export async function parseDroidSessions(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   _options: SessionParseOptions = {},
 ): Promise<UnifiedSession[]> {
   const files = await findSessionFiles(ctx);
@@ -192,7 +192,7 @@ export async function parseDroidSessions(
  * Extract visible messages from a Droid session.
  */
 export async function extractDroidContext(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   session: UnifiedSession,
 ): Promise<ParsedAgentConversation> {
   const events = await readJsonlFile<DroidEvent>(ctx, session.originalPath);

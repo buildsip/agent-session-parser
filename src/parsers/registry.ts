@@ -1,5 +1,5 @@
 import type {
-  AgentChatParserContext,
+  AgentSessionParserContext,
   ParsedAgentConversation,
   SessionParseOptions,
   SessionSource,
@@ -49,14 +49,14 @@ export interface ToolAdapter {
   extraEnvVars?: string[];
   /** Discover and index sessions. Parsers may ignore unsupported options. */
   parseSessions: (
-    ctx: AgentChatParserContext,
+    ctx: AgentSessionParserContext,
     options?: SessionParseOptions,
   ) => Promise<UnifiedSession[]>;
   /** True when parseSessions({ cwd }) can avoid a full global scan. */
   supportsCwdLookup?: boolean;
   /** Parse the full visible conversation for a discovered session. */
   parseSession: (
-    ctx: AgentChatParserContext,
+    ctx: AgentSessionParserContext,
     session: UnifiedSession,
   ) => Promise<ParsedAgentConversation>;
 }

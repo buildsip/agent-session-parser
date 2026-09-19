@@ -4,7 +4,7 @@
  */
 import * as fs from "node:fs";
 import { StringDecoder } from "node:string_decoder";
-import type { AgentChatParserContext } from "../types/index.js";
+import type { AgentSessionParserContext } from "../types/index.js";
 
 const DEFAULT_MAX_LINE_CHARS = 16 * 1024 * 1024;
 
@@ -25,7 +25,7 @@ export interface JsonlReadOptions {
  * (e.g. recovering glued JSON objects from a single physical line).
  */
 export async function scanJsonlLines(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
   visitor: (line: string, lineIndex: number) => "continue" | "stop",
   options: JsonlReadOptions = {},
@@ -127,7 +127,7 @@ export async function scanJsonlLines(
  * Returns an empty array if the file doesn't exist or can't be read.
  */
 export async function readJsonlFile<T = unknown>(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
   options?: JsonlReadOptions,
 ): Promise<T[]> {
@@ -156,7 +156,7 @@ export async function readJsonlFile<T = unknown>(
  * Useful for extracting metadata from session headers without reading the full file.
  */
 export async function scanJsonlHead(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
   maxLines: number,
   visitor: (parsed: unknown, lineIndex: number) => "continue" | "stop",
@@ -186,7 +186,7 @@ export async function scanJsonlHead(
  * The visitor returns 'continue' to keep reading or 'stop' to abort early.
  */
 export async function scanJsonlFile(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
   visitor: (parsed: unknown, lineIndex: number) => "continue" | "stop",
   options?: JsonlReadOptions,
@@ -214,7 +214,7 @@ export async function scanJsonlFile(
  * Used by multiple parsers for session metadata.
  */
 export async function getFileStats(
-  ctx: AgentChatParserContext,
+  ctx: AgentSessionParserContext,
   filePath: string,
 ): Promise<{ lines: number; bytes: number }> {
   const stats = fs.statSync(filePath);
